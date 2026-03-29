@@ -5,7 +5,7 @@
  * MIT License
  */
 
-const WINAMP_VERSION = "1.2.0";
+const WINAMP_VERSION = "1.2.1";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -513,20 +513,12 @@ class WinampCard extends HTMLElement {
     // Bitrate
     this._set("lcd-bitrate", el => { el.innerHTML = `${isActive ? "320" : "---"} <span>kbps</span>`; });
 
-    // Track scroll — always update when active, not just on change
+    // Track scroll — always set, let _setScrollText guard against redundant DOM work
     const trackText = isActive && title
       ? `${artist ? artist + " — " : ""}${title}${album ? "  [" + album + "]" : ""}`
       : "NO MEDIA LOADED";
-    if (trackText !== this._lastTrack) {
-      this._lastTrack = trackText;
-      this._setScrollText(trackText);
-    } else if (isActive && title && this._lastTrack === trackText) {
-      // Re-trigger scroll if element lost its animation (e.g. after first render)
-      const el = this.shadowRoot.getElementById("lcd-track");
-      if (el && !el.classList.contains("scrolling") && el.textContent.includes(title)) {
-        this._setScrollText(trackText);
-      }
-    }
+    this._lastTrack = trackText;
+    this._setScrollText(trackText);
 
     // Mini title (shade mode)
     this._set("title-mini", el => {
@@ -601,7 +593,11 @@ class WinampCard extends HTMLElement {
     const el = this.shadowRoot.getElementById("lcd-track");
     if (!el) return;
     const padded = text + "   ✦   ";
-    el.textContent = padded + padded;
+    const full   = padded + padded;
+    // Only reset the animation if the text has actually changed or isn't set yet
+    if (el.dataset.scrollText === text) return;
+    el.dataset.scrollText = text;
+    el.textContent = full;
     el.classList.remove("scrolling");
     el.style.animationDuration = "";
     clearTimeout(this._scrollTid);
