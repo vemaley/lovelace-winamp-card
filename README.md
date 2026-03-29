@@ -2,7 +2,7 @@
 
 > *It really whips the llama's ass.*
 
-A **Winamp-inspired media player card** for Home Assistant, designed for use with [Music Assistant](https://music-assistant.io/).
+A **Winamp-inspired media player card** for Home Assistant. Works with any `media_player` entity — [Music Assistant](https://music-assistant.io/), Sonos, Spotify, Google Cast, Jellyfin, and more.
 
 ![winamp-card screenshot](screenshot.png)
 
@@ -45,11 +45,11 @@ Click the button above, or follow these steps manually:
 - ⏯️ **Transport controls** — Prev / Play / Pause / Stop / Next
 - 🔊 **Volume & balance sliders** (click to set)
 - 🖼️ **Album artwork** strip with CRT scanline effect
-- 🔀 **Shuffle & Repeat** toggles
-- ⏱️ **Live progress bar** with seek support
+- 🔀 **Shuffle & Repeat** toggles (where supported by the integration)
+- ⏱️ **Live progress bar** with seek support (where supported by the integration)
 - 🪟 **Shade mode** — double-click the title bar to collapse to a mini player
 - ⚙️ **Visual config editor** — no YAML needed
-- ⏏️ **Eject button** opens Music Assistant UI in a new tab
+- ⏏️ **Eject button** — configurable link, defaults to Music Assistant UI
 - Zero dependencies — single JS file, no npm required
 
 ---
@@ -65,7 +65,7 @@ entity: media_player.music_assistant_player
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `entity` | string | **required** | `media_player` entity (Music Assistant player) |
+| `entity` | string | **required** | Any `media_player` entity |
 | `show_artwork` | boolean | `true` | Show album artwork strip |
 | `show_shuffle_repeat` | boolean | `true` | Show shuffle/repeat toggles |
 | `ma_url` | string | `/_x_music/#/home` | URL opened by the ⏏ eject button |
@@ -82,10 +82,34 @@ ma_url: "/_x_music/#/home"
 
 ---
 
+## Compatibility
+
+The card uses standard HA `media_player` services and works with any integration that exposes a `media_player` entity. Feature availability depends on what each integration supports:
+
+| Feature | MA | Sonos | Spotify | Cast | Jellyfin |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Play / Pause / Stop | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Previous / Next | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Volume | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Seek | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Shuffle / Repeat | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| Artwork | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Track metadata | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> **Note:** Unsupported features (e.g. seek on an integration that doesn't implement it) are silently ignored — the card won't error out.
+
+---
+
+## Music Assistant users
+
+The ⏏ eject button opens `/_x_music/#/home` by default, taking you directly to the Music Assistant UI. You can change this to any URL via the `ma_url` config option — for example, a direct link to a specific playlist or the MA mobile app.
+
+---
+
 ## Requirements
 
 - Home Assistant 2023.x or later
-- [Music Assistant](https://music-assistant.io/) with at least one player configured as a `media_player` entity
+- HACS (for one-click install)
 
 ---
 
