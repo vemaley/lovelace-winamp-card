@@ -4,7 +4,7 @@
 
 A **Winamp-inspired media player card** for Home Assistant. Works with any `media_player` entity — [Music Assistant](https://music-assistant.io/), Sonos, Spotify, Google Cast, Jellyfin, and more.
 
-![winamp-card screenshot](screenshot.png)
+![winamp-card screenshot](screenshot.jpg)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![version](https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge)](https://github.com/vemaley/lovelace-winamp-card/releases)
