@@ -5,7 +5,7 @@
  * MIT License
  */
 
-const WINAMP_VERSION = "1.1.0";
+const WINAMP_VERSION = "1.2.0";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -299,7 +299,7 @@ function buildTemplate(cfg) {
 
   <div class="title-bar" id="titlebar" title="Double-click to shade">
     <span class="title-bar-logo">●</span>
-    <span class="title-bar-text">Winamp</span>
+    <span class="title-bar-text" id="title-main">Winamp</span>
     <span class="title-bar-mini" id="title-mini">NO MEDIA</span>
     <div class="title-bar-buttons">
       <div class="title-btn shade-toggle" id="btn-shade" title="Shade">▲</div>
@@ -490,12 +490,16 @@ class WinampCard extends HTMLElement {
     const pos       = livePos(a, isPlaying);
     const dur       = a.media_duration  || 0;
     const vol       = a.volume_level    !== undefined ? a.volume_level : 1;
-    const title     = a.media_title     || "";
-    const artist    = a.media_artist    || "";
+    const title     = a.media_title      || "";
+    const artist    = a.media_artist     || "";
     const album     = a.media_album_name || "";
-    const source    = a.source          || "";
+    const source    = a.app_name || a.source || "";
+    const friendly  = a.friendly_name   || "Winamp";
 
     this._vu.setPlaying(isPlaying);
+
+    // Title bar — show friendly_name
+    this._set("title-main", el => { el.textContent = friendly; });
 
     // Status badge
     this._set("lcd-status", el => {
@@ -509,15 +513,24 @@ class WinampCard extends HTMLElement {
     // Bitrate
     this._set("lcd-bitrate", el => { el.innerHTML = `${isActive ? "320" : "---"} <span>kbps</span>`; });
 
-    // Track scroll
+    // Track scroll — always update when active, not just on change
     const trackText = isActive && title
       ? `${artist ? artist + " — " : ""}${title}${album ? "  [" + album + "]" : ""}`
       : "NO MEDIA LOADED";
-    if (trackText !== this._lastTrack) { this._lastTrack = trackText; this._setScrollText(trackText); }
+    if (trackText !== this._lastTrack) {
+      this._lastTrack = trackText;
+      this._setScrollText(trackText);
+    } else if (isActive && title && this._lastTrack === trackText) {
+      // Re-trigger scroll if element lost its animation (e.g. after first render)
+      const el = this.shadowRoot.getElementById("lcd-track");
+      if (el && !el.classList.contains("scrolling") && el.textContent.includes(title)) {
+        this._setScrollText(trackText);
+      }
+    }
 
     // Mini title (shade mode)
     this._set("title-mini", el => {
-      el.textContent = isActive && title ? `${artist ? artist + " · " : ""}${title}` : "WINAMP";
+      el.textContent = isActive && title ? `${artist ? artist + " · " : ""}${title}` : friendly;
     });
 
     // Time + progress
@@ -529,8 +542,8 @@ class WinampCard extends HTMLElement {
     this._set("vol-thumb", el => el.style.left  = vp + "%");
     this._set("vol-pct",   el => el.textContent  = vp);
 
-    // Artwork
-    const artUrl = a.entity_picture;
+    // Artwork — prefer local proxy, fall back to remote URL
+    const artUrl = a.entity_picture_local || a.entity_picture;
     const artImg = this.shadowRoot.getElementById("art-img");
     const artPh  = this.shadowRoot.getElementById("art-ph");
     if (artImg && artPh) {
